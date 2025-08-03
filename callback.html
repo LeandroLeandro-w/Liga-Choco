@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haxball Discord Login</title>
+    <title>Haxball Discord - Autenticando...</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -26,89 +22,25 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 500px;
             width: 90%;
             text-align: center;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
         
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-        
-        .success {
-            color: #4CAF50;
-        }
-        
-        .error {
-            color: #f44336;
-        }
-        
-        .loading {
-            color: #ff9800;
-        }
-        
-        .command-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 1.1rem;
-            word-break: break-all;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .copy-btn {
-            background: #5865F2;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .copy-btn:hover {
-            background: #4752C4;
-            transform: translateY(-2px);
-        }
-        
-        .copy-btn:active {
-            transform: translateY(0);
-        }
-        
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        
-        .step {
-            margin: 10px 0;
-            padding: 5px 0;
-        }
+        .logo { font-size: 4rem; margin-bottom: 20px; }
+        h1 { font-size: 1.8rem; margin-bottom: 15px; }
+        p { font-size: 1.1rem; margin-bottom: 15px; opacity: 0.9; }
         
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top: 4px solid #fff;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 30px auto;
         }
         
         @keyframes spin {
@@ -116,167 +48,270 @@
             100% { transform: rotate(360deg); }
         }
         
-        .footer {
-            margin-top: 30px;
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .processing { color: #ff9800; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.5s ease;
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        
+        .step.complete {
+            opacity: 1;
+            color: #4CAF50;
+        }
+        
+        .close-btn {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        
+        .close-btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
         }
     </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🎮</div>
-        <div id="content">
-            <div class="spinner"></div>
-            <h1 class="loading">Procesando login con Discord...</h1>
-            <p>Por favor espera un momento...</p>
+        <div class="logo processing" id="logo">🔄</div>
+        <h1 id="title">Procesando autenticación...</h1>
+        <p id="subtitle">Conectando con Discord y Haxball</p>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
         </div>
+        
+        <div id="steps">
+            <div class="step" id="step1">
+                <span>1️⃣ Verificando token de Discord...</span>
+            </div>
+            <div class="step" id="step2">
+                <span>2️⃣ Obteniendo datos del usuario...</span>
+            </div>
+            <div class="step" id="step3">
+                <span>3️⃣ Registrando en Haxball...</span>
+            </div>
+            <div class="step" id="step4">
+                <span>4️⃣ ¡Completado!</span>
+            </div>
+        </div>
+        
+        <div class="spinner" id="spinner"></div>
+        
+        <button class="close-btn" id="closeBtn" onclick="window.close()">
+            ✨ Cerrar ventana
+        </button>
     </div>
 
     <script>
-        function showSuccess(token, userInfo) {
-            document.getElementById('content').innerHTML = `
-                <div class="logo success">✅</div>
-                <h1 class="success">¡Login exitoso!</h1>
-                ${userInfo ? `<p>Bienvenido, <strong>${userInfo.username}</strong>!</p>` : ''}
+        // Configuración Firebase (reemplaza con tu configuración)
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
+            projectId: "tu-proyecto"
+        };
+        
+        // Inicializar Firebase
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } catch (error) {
+            console.error('Error inicializando Firebase:', error);
+        }
+        
+        let currentStep = 0;
+        let authId = null;
+        
+        function updateProgress(step, message) {
+            currentStep = step;
+            
+            // Actualizar barra de progreso
+            document.getElementById('progress').style.width = (step * 25) + '%';
+            
+            // Actualizar pasos
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById('step' + i);
+                stepEl.classList.remove('active', 'complete');
                 
-                <div class="instructions">
-                    <h3>📋 Instrucciones:</h3>
-                    <div class="step">1️⃣ Copia el comando de abajo</div>
-                    <div class="step">2️⃣ Ve al chat de Haxball</div>
-                    <div class="step">3️⃣ Pega y envía el comando</div>
-                    <div class="step">4️⃣ ¡Ya puedes chatear con el ✅!</div>
-                </div>
-                
-                <div class="command-box" id="tokenCommand">!token ${token}</div>
-                
-                <button class="copy-btn" onclick="copyToken()">
-                    📋 Copiar Comando
-                </button>
-                
-                <div class="footer">
-                    <p>✨ Puedes cerrar esta ventana después de copiar el comando</p>
-                    <p>🔒 Tu token es válido por 10 minutos</p>
-                </div>
-            `;
+                if (i < step) {
+                    stepEl.classList.add('complete');
+                } else if (i === step) {
+                    stepEl.classList.add('active');
+                }
+            }
+            
+            // Actualizar mensaje si se proporciona
+            if (message) {
+                document.getElementById('subtitle').textContent = message;
+            }
+        }
+        
+        function showSuccess(username) {
+            document.getElementById('logo').textContent = '✅';
+            document.getElementById('logo').className = 'logo success';
+            document.getElementById('title').textContent = '¡Autenticación exitosa!';
+            document.getElementById('subtitle').textContent = `Bienvenido, ${username}`;
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('closeBtn').style.display = 'inline-block';
+            
+            updateProgress(4, 'Ya puedes chatear en Haxball con el ✅');
+            
+            // Auto-cerrar después de 5 segundos
+            setTimeout(() => {
+                window.close();
+            }, 5000);
         }
         
         function showError(message) {
-            document.getElementById('content').innerHTML = `
-                <div class="logo error">❌</div>
-                <h1 class="error">Error en el login</h1>
-                <p>${message || 'Hubo un problema con la autenticación.'}</p>
-                
-                <div class="instructions">
-                    <h3>🔄 Para intentar de nuevo:</h3>
-                    <div class="step">1️⃣ Ve al chat de Haxball</div>
-                    <div class="step">2️⃣ Escribe <code>!login</code></div>
-                    <div class="step">3️⃣ Sigue las nuevas instrucciones</div>
-                </div>
-                
-                <div class="footer">
-                    <p>Si el problema persiste, contacta a un administrador</p>
-                </div>
-            `;
+            document.getElementById('logo').textContent = '❌';
+            document.getElementById('logo').className = 'logo error';
+            document.getElementById('title').textContent = 'Error de autenticación';
+            document.getElementById('subtitle').textContent = message;
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('progress').style.background = '#f44336';
+            
+            setTimeout(() => window.close(), 3000);
         }
         
-        function copyToken() {
-            const tokenCommand = document.getElementById('tokenCommand').textContent;
-            navigator.clipboard.writeText(tokenCommand).then(function() {
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ ¡Copiado!';
-                btn.style.background = '#4CAF50';
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.background = '#5865F2';
-                }, 2000);
-            }).catch(function(err) {
-                // Fallback para navegadores antiguos
-                const textArea = document.createElement('textarea');
-                textArea.value = tokenCommand;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                
-                const btn = document.querySelector('.copy-btn');
-                btn.innerHTML = '✅ ¡Copiado!';
-                btn.style.background = '#4CAF50';
-            });
-        }
-        
-        // Procesar la respuesta de Discord
-        function processDiscordCallback() {
+        async function getUserInfo(token) {
+            updateProgress(2, 'Obteniendo información del usuario...');
+            
             try {
+                // Usar proxy CORS para obtener datos del usuario
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const discordApiUrl = encodeURIComponent('https://discord.com/api/users/@me');
+                
+                const response = await fetch(proxyUrl + discordApiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error en la petición');
+                
+                const data = await response.json();
+                const userInfo = JSON.parse(data.contents);
+                
+                return userInfo;
+                
+            } catch (error) {
+                console.error('Error obteniendo info del usuario:', error);
+                // Continuar sin info del usuario
+                return null;
+            }
+        }
+        
+        async function registerInHaxball(userInfo) {
+            updateProgress(3, 'Registrando en Haxball...');
+            
+            if (!database || !authId) {
+                throw new Error('No se puede conectar con Haxball');
+            }
+            
+            try {
+                // Enviar datos a Firebase para que Haxball los recoja
+                await database.ref('auth/' + authId).set({
+                    success: true,
+                    userData: userInfo,
+                    timestamp: Date.now()
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('Error registrando en Haxball:', error);
+                throw error;
+            }
+        }
+        
+        async function processAuth() {
+            try {
+                updateProgress(1, 'Verificando con Discord...');
+                
                 // Extraer parámetros de la URL
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const queryParams = new URLSearchParams(window.location.search);
                 
-                // Obtener token y estado
                 const accessToken = hashParams.get('access_token');
-                const tokenType = hashParams.get('token_type');
-                const state = hashParams.get('state') || queryParams.get('state');
                 const error = hashParams.get('error') || queryParams.get('error');
-                const errorDescription = hashParams.get('error_description') || queryParams.get('error_description');
+                authId = hashParams.get('state') || queryParams.get('state');
                 
-                // Verificar si hay errores
                 if (error) {
-                    let errorMsg = 'Error de autenticación';
-                    if (error === 'access_denied') {
-                        errorMsg = 'Se canceló la autorización';
-                    } else if (errorDescription) {
-                        errorMsg = errorDescription;
-                    }
-                    showError(errorMsg);
-                    return;
+                    throw new Error(error === 'access_denied' ? 'Autorización cancelada' : 'Error de Discord');
                 }
                 
-                // Verificar si hay token
                 if (!accessToken) {
-                    showError('No se recibió el token de acceso');
-                    return;
+                    throw new Error('No se recibió token de acceso');
                 }
                 
-                // Opcional: obtener información del usuario para mostrar
-                fetchUserInfo(accessToken);
+                if (!authId) {
+                    throw new Error('ID de autenticación inválido');
+                }
                 
-            } catch (err) {
-                console.error('Error procesando callback:', err);
-                showError('Error procesando la respuesta de Discord');
+                // Obtener información del usuario
+                const userInfo = await getUserInfo(accessToken);
+                
+                // Registrar en Haxball
+                await registerInHaxball(userInfo);
+                
+                // Éxito
+                showSuccess(userInfo ? userInfo.username : 'Usuario');
+                
+            } catch (error) {
+                console.error('Error en autenticación:', error);
+                showError(error.message || 'Error desconocido');
             }
         }
         
-        // Obtener información del usuario (opcional)
-        function fetchUserInfo(token) {
-            // Intentar obtener info del usuario usando un proxy CORS
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-            const discordApiUrl = encodeURIComponent('https://discord.com/api/users/@me');
-            
-            fetch(proxyUrl + discordApiUrl, {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.contents) {
-                    const userInfo = JSON.parse(data.contents);
-                    showSuccess(token, userInfo);
-                } else {
-                    showSuccess(token);
-                }
-            })
-            .catch(err => {
-                console.log('No se pudo obtener info del usuario, pero el token es válido');
-                showSuccess(token);
-            });
-        }
-        
-        // Ejecutar cuando cargue la página
+        // Iniciar proceso cuando cargue la página
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(processDiscordCallback, 1000); // Pequeño delay para que se vea la animación
+            setTimeout(processAuth, 1000);
         });
     </script>
 </body>
