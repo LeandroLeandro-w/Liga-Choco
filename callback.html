@@ -1,8 +1,40 @@
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const authId = params.get("authId");
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  // Iniciá el login de Discord (client_id es tuyo)
-  const redirect = encodeURIComponent(`https://leandroleandro-w.github.io/Liga-Choco/callback?authId=${authId}`);
-  window.location.href = `https://discord.com/api/oauth2/authorize?client_id=TU_CLIENT_ID&redirect_uri=${redirect}&response_type=token&scope=identify`;
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const fragment = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = fragment.get("access_token");
+  const authId = new URLSearchParams(window.location.search).get("authId");
+
+  if (!accessToken || !authId) {
+    document.body.innerText = "Error: Faltan parámetros.";
+  } else {
+    const res = await fetch("https://discord.com/api/users/@me", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    const user = await res.json();
+
+    const userData = {
+      discordId: user.id,
+      discordTag: `${user.username}#${user.discriminator}`
+    };
+
+    await set(ref(db, `auth/${authId}`), userData);
+    document.body.innerText = `✅ Te has autenticado como ${userData.discordTag}. Puedes volver a Haxball.`;
+  }
 </script>
