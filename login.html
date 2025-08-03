@@ -1,0 +1,8 @@
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const authId = params.get("authId");
+
+  // Iniciá el login de Discord (client_id es tuyo)
+  const redirect = encodeURIComponent(`https://leandroleandro-w.github.io/Liga-Choco/callback?authId=${authId}`);
+  window.location.href = `https://discord.com/api/oauth2/authorize?client_id=TU_CLIENT_ID&redirect_uri=${redirect}&response_type=token&scope=identify`;
+</script>
