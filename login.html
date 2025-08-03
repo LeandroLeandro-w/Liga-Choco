@@ -1,8 +1,67 @@
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const authId = params.get("authId");
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login con Discord para Haxball</title>
+</head>
+<body>
+  <h2>Autenticación con Discord</h2>
+  <p id="status">Redirigiendo a Discord...</p>
 
-  // Iniciá el login de Discord (client_id es tuyo)
-  const redirect = encodeURIComponent(`https://leandroleandro-w.github.io/Liga-Choco/callback?authId=${authId}`);
-  window.location.href = `https://discord.com/api/oauth2/authorize?client_id=TU_CLIENT_ID&redirect_uri=${redirect}&response_type=token&scope=identify`;
-</script>
+  <script>
+    const clientId = "1401641649850810679";
+    const redirectUri = "https://TU_USUARIO.github.io/login.html";
+    const token = new URLSearchParams(window.location.search).get("token");
+    const code = new URLSearchParams(window.location.search).get("code");
+
+    if (!code) {
+      // Redirigir a Discord para autorizar
+      const discordURL =
+        `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
+      window.location.href = discordURL;
+    } else {
+      document.getElementById("status").innerText = "Autenticando con Discord...";
+
+      // Pedimos el token a Discord
+      fetch("https://discord.com/api/oauth2/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: "TU_CLIENT_SECRET",
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: redirectUri,
+          scope: "identify"
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        return fetch("https://discord.com/api/users/@me", {
+          headers: {
+            "Authorization": `Bearer ${data.access_token}`
+          }
+        });
+      })
+      .then(res => res.json())
+      .then(user => {
+        document.getElementById("status").innerText = `✅ Autenticado como ${user.username}`;
+
+        // Guardar en GitHub o base de datos
+        // Aquí puedes hacer una llamada a GitHub o a Firebase, etc.
+        console.log("Usuario autenticado:", user.id);
+
+        // Guardar en GitHub como JSON por ejemplo:
+        // fetch("https://api.github.com/repos/TU_USUARIO/NOMBRE_REPO/contents/verificados.json", {...})
+        // O notificar a tu script de Haxball usando Firebase
+
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        document.getElementById("status").innerText = "❌ Error en la autenticación.";
+      });
+    }
+  </script>
+</body>
+</html>
