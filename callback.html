@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haxball Discord - Autenticando...</title>
     <style>
+        /* (Estilos originales, no modificados) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -16,7 +17,7 @@
             justify-content: center;
             color: white;
         }
-        
+
         .container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -28,11 +29,11 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
-        
+
         .logo { font-size: 4rem; margin-bottom: 20px; }
         h1 { font-size: 1.8rem; margin-bottom: 15px; }
         p { font-size: 1.1rem; margin-bottom: 15px; opacity: 0.9; }
-        
+
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
@@ -42,16 +43,16 @@
             animation: spin 1s linear infinite;
             margin: 30px auto;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         .success { color: #4CAF50; }
         .error { color: #f44336; }
         .processing { color: #ff9800; }
-        
+
         .progress-bar {
             width: 100%;
             height: 6px;
@@ -60,7 +61,7 @@
             overflow: hidden;
             margin: 20px 0;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #4CAF50, #8BC34A);
@@ -68,12 +69,12 @@
             transition: width 0.5s ease;
             animation: shimmer 2s infinite;
         }
-        
+
         @keyframes shimmer {
             0% { background-position: -1000px 0; }
             100% { background-position: 1000px 0; }
         }
-        
+
         .step {
             display: flex;
             align-items: center;
@@ -82,17 +83,17 @@
             opacity: 0.5;
             transition: all 0.3s ease;
         }
-        
+
         .step.active {
             opacity: 1;
             transform: scale(1.05);
         }
-        
+
         .step.complete {
             opacity: 1;
             color: #4CAF50;
         }
-        
+
         .close-btn {
             background: #5865F2;
             color: white;
@@ -105,12 +106,13 @@
             transition: all 0.3s ease;
             display: none;
         }
-        
+
         .close-btn:hover {
             background: #4752C4;
             transform: translateY(-2px);
         }
     </style>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -120,42 +122,32 @@
         <div class="logo processing" id="logo">🔄</div>
         <h1 id="title">Procesando autenticación...</h1>
         <p id="subtitle">Conectando con Discord y Haxball</p>
-        
+
         <div class="progress-bar">
             <div class="progress-fill" id="progress"></div>
         </div>
-        
+
         <div id="steps">
-            <div class="step" id="step1">
-                <span>1️⃣ Verificando token de Discord...</span>
-            </div>
-            <div class="step" id="step2">
-                <span>2️⃣ Obteniendo datos del usuario...</span>
-            </div>
-            <div class="step" id="step3">
-                <span>3️⃣ Registrando en Haxball...</span>
-            </div>
-            <div class="step" id="step4">
-                <span>4️⃣ ¡Completado!</span>
-            </div>
+            <div class="step" id="step1"><span>1️⃣ Verificando token de Discord...</span></div>
+            <div class="step" id="step2"><span>2️⃣ Obteniendo datos del usuario...</span></div>
+            <div class="step" id="step3"><span>3️⃣ Registrando en Haxball...</span></div>
+            <div class="step" id="step4"><span>4️⃣ ¡Completado!</span></div>
         </div>
-        
+
         <div class="spinner" id="spinner"></div>
-        
-        <button class="close-btn" id="closeBtn" onclick="window.close()">
-            ✨ Cerrar ventana
-        </button>
+
+        <button class="close-btn" id="closeBtn" onclick="window.close()">✨ Cerrar ventana</button>
     </div>
 
     <script>
-        // Configuración Firebase (reemplaza con tu configuración)
+        // Configuración Firebase
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "tu-proyecto.firebaseapp.com",
-            databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
-            projectId: "tu-proyecto"
+            apiKey: "AIzaSyCYX-d-hwvY_quyNC0pG6eB79Wl-wfAR80",
+            authDomain: "liga-choco.firebaseapp.com",
+            databaseURL: "https://liga-choco-default-rtdb.firebaseio.com",
+            projectId: "liga-choco"
         };
-        
+
         // Inicializar Firebase
         let database;
         try {
@@ -164,34 +156,27 @@
         } catch (error) {
             console.error('Error inicializando Firebase:', error);
         }
-        
+
         let currentStep = 0;
         let authId = null;
-        
+
         function updateProgress(step, message) {
             currentStep = step;
-            
-            // Actualizar barra de progreso
             document.getElementById('progress').style.width = (step * 25) + '%';
-            
-            // Actualizar pasos
+
             for (let i = 1; i <= 4; i++) {
                 const stepEl = document.getElementById('step' + i);
                 stepEl.classList.remove('active', 'complete');
-                
-                if (i < step) {
-                    stepEl.classList.add('complete');
-                } else if (i === step) {
-                    stepEl.classList.add('active');
-                }
+
+                if (i < step) stepEl.classList.add('complete');
+                else if (i === step) stepEl.classList.add('active');
             }
-            
-            // Actualizar mensaje si se proporciona
+
             if (message) {
                 document.getElementById('subtitle').textContent = message;
             }
         }
-        
+
         function showSuccess(username) {
             document.getElementById('logo').textContent = '✅';
             document.getElementById('logo').className = 'logo success';
@@ -199,15 +184,12 @@
             document.getElementById('subtitle').textContent = `Bienvenido, ${username}`;
             document.getElementById('spinner').style.display = 'none';
             document.getElementById('closeBtn').style.display = 'inline-block';
-            
+
             updateProgress(4, 'Ya puedes chatear en Haxball con el ✅');
-            
-            // Auto-cerrar después de 5 segundos
-            setTimeout(() => {
-                window.close();
-            }, 5000);
+
+            setTimeout(() => window.close(), 5000);
         }
-        
+
         function showError(message) {
             document.getElementById('logo').textContent = '❌';
             document.getElementById('logo').className = 'logo error';
@@ -215,102 +197,88 @@
             document.getElementById('subtitle').textContent = message;
             document.getElementById('spinner').style.display = 'none';
             document.getElementById('progress').style.background = '#f44336';
-            
+
             setTimeout(() => window.close(), 3000);
         }
-        
+
         async function getUserInfo(token) {
             updateProgress(2, 'Obteniendo información del usuario...');
-            
+
             try {
-                // Usar proxy CORS para obtener datos del usuario
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
-                const discordApiUrl = encodeURIComponent('https://discord.com/api/users/@me');
-                
-                const response = await fetch(proxyUrl + discordApiUrl, {
-                    method: 'GET',
+                const response = await fetch("https://discord.com/api/users/@me", {
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        Authorization: `Bearer ${token}`
                     }
                 });
-                
-                if (!response.ok) throw new Error('Error en la petición');
-                
-                const data = await response.json();
-                const userInfo = JSON.parse(data.contents);
-                
+
+                if (!response.ok) {
+                    throw new Error('No se pudo obtener información del usuario Discord');
+                }
+
+                const userInfo = await response.json();
                 return userInfo;
-                
             } catch (error) {
                 console.error('Error obteniendo info del usuario:', error);
-                // Continuar sin info del usuario
                 return null;
             }
         }
-        
+
         async function registerInHaxball(userInfo) {
             updateProgress(3, 'Registrando en Haxball...');
-            
+
             if (!database || !authId) {
                 throw new Error('No se puede conectar con Haxball');
             }
-            
+
             try {
-                // Enviar datos a Firebase para que Haxball los recoja
                 await database.ref('auth/' + authId).set({
                     success: true,
                     userData: userInfo,
                     timestamp: Date.now()
                 });
-                
+
                 return true;
             } catch (error) {
                 console.error('Error registrando en Haxball:', error);
                 throw error;
             }
         }
-        
+
         async function processAuth() {
             try {
                 updateProgress(1, 'Verificando con Discord...');
-                
-                // Extraer parámetros de la URL
+
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const queryParams = new URLSearchParams(window.location.search);
-                
+
                 const accessToken = hashParams.get('access_token');
                 const error = hashParams.get('error') || queryParams.get('error');
                 authId = hashParams.get('state') || queryParams.get('state');
-                
+
                 if (error) {
                     throw new Error(error === 'access_denied' ? 'Autorización cancelada' : 'Error de Discord');
                 }
-                
+
                 if (!accessToken) {
                     throw new Error('No se recibió token de acceso');
                 }
-                
+
                 if (!authId) {
                     throw new Error('ID de autenticación inválido');
                 }
-                
-                // Obtener información del usuario
+
                 const userInfo = await getUserInfo(accessToken);
-                
-                // Registrar en Haxball
+
                 await registerInHaxball(userInfo);
-                
-                // Éxito
+
                 showSuccess(userInfo ? userInfo.username : 'Usuario');
-                
             } catch (error) {
                 console.error('Error en autenticación:', error);
                 showError(error.message || 'Error desconocido');
             }
         }
-        
-        // Iniciar proceso cuando cargue la página
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             setTimeout(processAuth, 1000);
         });
     </script>
